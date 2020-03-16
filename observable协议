@@ -1,0 +1,82 @@
+rxjava的Observable约定
+
+Observable约定，你可能在多个地方的源码文档中看到了这个引用，本网页试图给出Observable的一个正式定义，基于微软2010 Rx Design Guidelines 的文档，这个文档描述了他们如何在Rx.NET实现ReactiveX。
+本网页总结Observable约定。
+	
+消息
+Observable和观察者通信有如下消息：
+OnNext
+协载Observable弹出的数据项到观察者
+OnCompleted
+表示Observable 已经成功完成，并且不再发送任何数据。
+OnError
+表示Observable因特定的错误条件而终止，并且不再发送任何数据。
+OnSubscribe (可选)
+表示Observable已经准备好接收观察者的请求消息(看下面的背压)
+
+
+观察者和Observable通信方式有如下消息：
+Subscribe
+表示观察者已经准备好接收Observable消息。
+Unsubscribe
+表示观察者不再想要接收Observable消息
+Request (可选)
+表示观察者向Observable请求更多 OnNext 消息，请求的数量有限制（看下面的背压）。
+
+
+管理消息约定
+
+Observable 可能制造0到多个消息，每一个消息代表一个发出的数据项，并且后面可能跟随其中之一的OnCompleted 或者 OnError 消息，在发布 OnCompleted 或者OnError消息之后不会发布任何其他消息。
+Observable可能不发布任何数据项。Observable可能永远不会以onCompleted 或者OnError消息来结束。那就是说只发布其中之一的OnCompleted 或者 OnError 消息，或者只发布OnNext 消息，消息对于不发布消息的 Observable是可以的。
+Observable必须顺序的给观察者发布消息(不是并行)。Observable可能重不同的线程发布消息，但是消息必须是以“之前发生”形式关系。
+
+
+Observable终结
+如果一个没有发布OnCompleted 或者 OnError 消息的Observable，可以认为他还是活着的(即便是他没有当前没有发布数据项)和可能发布消息(比如Unsubscribe 和Request 消息)。当Observable发布 OnCompleted 或者 OnError 消息，那么他将释放他的资源并结束，他的观察者应当不再尝试和他通信。
+
+一个OnError 消息必须保含错误原因(就是说，带null值调用OnError是不合法的)。
+当一个Observable 结束前，他必须发布OnCompleted 或者 OnError 消息给订阅他的所有观察者。
+
+订阅和取消订阅
+
+Observable接收到观察者的订阅消息后会立即开始发布消息.
+当观察者发布取消订阅消息给 Observable ，Observable会尝试停止发布消息给观察者。这些是没有确保的，但是在观察者发送取消订阅消息给Observable后，Observable将不会再发送消息给观察者
+当Observable发布OnCompleted 或者 OnError消息给观察者时，就已经结束了订阅。通过这种方式观察者不需要发布取消订阅消息来结束订阅。
+
+多观察者
+
+如果第二个观察者订阅到已经发布数据项到第一个观察者的 Observable，没有普遍的规定同一个Observale的2个观察者将接收相同序列的数据项，他取决于Observalbe是否此时开始发布相同的数据项给观察者，或者 Observable 重新发布已经发布给第一个观察者的数据项，或者发送完全不同的数据项给第二个观察者。
+
+背压
+
+背压是一个可选项，不是所有的响应式实现都包含背压，而且在那些实现的背压的相应式，不是所有的Observable和操作都尊重背压。如果Observable发现他的观察者实现了请求消息并理解接触订阅消息，那么Observable可能实现了背压。
+
+如果Observable实现了背压并且他的观察者启用了背压，当观察者注册后Observable不会立即发布数据，相应的他将发布OnSubscribe 消息给观察者。
+
+在接收OnSubscribe消息后，观察者任何时候都可能发布Request消息给Observable 。Request 消息必须包含请求数据量的大小。Observable弹出不多于观察者请求数量大小的数据来相应请求。然而 Observable 可能额外发布OnCompleted 或者 OnError 消息，甚至可能在观察者没有请求任何数据项前发布这些消息。
+
+一个没有实现背压的Observable应该通过发布 OnError 消息来响应观察者的Request 消息，表示他不支持背压。
+
+请求是累计的。例如，观察者发布了请求数目分别为3，5，10的三个请求，Observable会发送18个数据项给观察者，不管这些请求消息到达的对于Observable弹出的数据项相的时间。
+
+如果Observable生产的数据多于观察者请求的数目，这取决于Observable是否丢弃，存储，或者延后发送这些超额的数据，或者使用其他策略来处理这些溢出数据。
+
+参考看看
+
+Rx Design Guidelines  https://go.microsoft.com/fwlink/?LinkID=205219
+RxJS Design Guidelines http://xgrommx.github.io/rx-book/content/guidelines/index.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
