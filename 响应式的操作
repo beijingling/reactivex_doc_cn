@@ -1,0 +1,169 @@
+引言
+
+每个实现响应式编程的语言都实现一个操作集。虽然各个实现有重叠，但是有些操作只在特定实现中才有。同时，每个实现倾向于将操作的名称命名为其他语言广为人知的相似方法。
+
+链式操作
+
+大多数操作作用在Observable上并且返回一个新Observable。这允许你像链条一样一个接一个的使用这些操作。链中的每个操作修改上一个操作传过来的Observable，
+存在其他的模式，比如建造者模式，这种模式中特定类的多个方法操作这个类的相同对象实例。这些模式也能够让你使用相似的方式串联方法。然而在建造者模式中，连中的方法顺序不是一个关注问题，相比较Observable的操作却是一个关注点。
+
+Observable操作链不是独立的作用于最开始的Observable，而是依次操作，每个操作作用到上一个操作生成的Observable。
+
+
+相应式的操作
+
+本页首先列出在响应式中被认为的“核心”操作，并且这些操作被链接到更多信息页，这些页描述操作式如何工作和特定语言的相应式版本如何实现这些操作。
+
+接下来是“决策树”，他能够帮助你选择适合你用例的操作。
+
+最后，这里列出了许多实现了响应式的语言的操作字母列表。这些列表链接到了核心操作的文献页（例如，Rx.NET “SelectMany” 操作链接到响应式FlatMap 操作的文献。）。
+
+如果你想要实现自己的操作，请查看 “Implementing Your Own Operators”。
+
+内容
+1.操作分类
+2.Observable操作决策树
+3.Observable操作字母列表
+
+操作分类
+
+创建Observable
+
+
+初始的新Observable操作
+
+Create - 程序性从头开始调用观察者方法来创建Observable 
+Defer - 直到观察者订阅后才创建Observable ，并且是给每一个观察者创建一个新的Observable 。
+Empty/Never/Throw - 创建精确且受限行为的Observable 。
+From - 将其他对象或数据结构转换为一个Observable 。
+Interval - 创建一个弹出以确定的时间间隔的整数Observable 。
+Just - 将对象或对象集转换为Observable ，Observable会弹出这些对象。
+Range - 创建一个弹出指定范围内的整数的Observable 。
+Repeat - 创建重复弹出特定数据项或数据序列的Observable 。
+Start - 创建弹出函数返回值的Observable 。
+Timer - 创建 指定时间后弹出单个数据项的Observable 。
+
+变换Observable 
+变换Observable 弹出的数据项的操作
+
+Buffer - 间断性的收集来自Observable的数据合成包裹，并且弹出这些包裹，而不是一次弹出一个数据。
+FlatMap - 转换转换数据项为Observable，然后抚平这些数据到单个Observable。
+GroupBy - 将原Observable弹出的数据安照关键字分组，分组后的数据形成新的Observable。
+Map - 使用一个函数将Observable弹出的每个数据项转换其他形式。
+Scan - 使用一个函数处理Observable弹出的数据并且逐个的弹出处理后的值。
+Window - 间隔性的分割observable数据项为Observable窗口 并将这些窗口发送出去。
+
+
+Observable 过滤
+上游Observable弹出的数据选择性的发送操作。
+ Debounce - 只有过去了一段特定的时长后才发出一个数据项。
+ Distinct - 去除Observable中重复的数据项。
+ ElementAt - 只弹出Observable中第n个数据项。
+ Filter - 只弹出那些通过断言测试的数据项。
+ First - 只弹出第一个数据项，或者符合条件的第一个数据项。
+ IgnoreElements - 不弹出任何数据项但是会映射终止通知。
+ last - 只弹出最后一个数据项。
+ Sample - 在特定的时间间隔内只弹出最新的数据项。
+ Skip - 去除前n个数据项。
+ SkipLast - 去除Observable中后N个数据项。
+ Take - 只弹出Observable中前N个数据项。
+ TakeLast - 只弹出Observable中后N个数据项。
+
+连接Observable
+作用于多个Observable创建单个Observable的炒作
+
+ And/The/When - 通过Pattern 和 Plan中介的方式连接多个Observable的数据集
+ CombineLatest - 当两个Observable之一发射一个项目时，通过指定的函数组合每个 Observable 发射的最新项目，并根据此函数的结果发射项目。
+ Join - 在根据另一个Observable所发射的项目定义的时间窗口中，只要发射了一个Observable的项目，就组合两个Observable发射的项目
+ Merge - 通过合并他们的发射数据来合并2个Observab。
+ StartWith - 在发射源Observable数据项前先发射一个特定的数据序列。
+ switch - 将发出Observable的Observable转换为发出可观察到的最新事物的单个Observable
+ Zip - 通过特别的函数合并多个Observable发送的数据，弹出后的数据是基于这个函数的结果合并后的一个单个数据。
+ 
+ 错误处理操作
+ 
+ 从Observable的错误通知中恢复的操作
+ 
+ catch - 从 onError 通知恢复继续数据序列
+ retry - 如果数据原 Observable 发送 onError 通知，重新订阅以无错误期完成。
+ 
+ Observable 的工具操作
+ 
+ Observable协同的有用的操作工具箱
+ 
+ delay - 延迟 Observable的数据发送
+ Do - 注册一个回调动作作用于 Observable 的各种生命周期事件
+ Materialize/Dematerialize - 代表包装或解包装后数据项和通知。
+ ObserveOn - 指定 observer观察者在哪个调度器上观察 Observable。
+ Serialize — 强制 Observable 产生序列化调用，并产生可期的行为(弹出的数据是顺序的)，
+ Subscribe - 作用到 Observable 弹出数据项和通知。
+ SubscribeOn - 指定 Observable被订阅后 它所使用的调度器。
+ TimeInterval - 收集 Observable 在一段时间内的弹出项为一个数据项进行再次发射。
+ TimeOut - 当一段时间内没有发射数据项时发布一个错误通知。
+ Timestamp - 给每一个弹出数据项添加一个时间戳。
+ Using - 创建一个类似于 Observable 寿命的可丢弃的数据源。
+ 
+ 条件和布尔逻辑操作
+ 判断Observables发射的一个或多个Observables或数据项的操作。
+ All - 判断Observables弹出的全部数据项是否都满足某个标准。
+ Amb - 给定了2哥或以上的Observables数据源只弹出第一个Observables的发射数据。
+ Contains - 判断Observables发射的数据项是否含有某个数据。
+ DefauIfEmpty - 如果源Observables不为空，发射源Observable的数据项，否则发射一个默认的数据项。
+ SequenceEqual - 判断2个Observable的数据项序列是否相同。
+ SkipUntil - 丢弃Observables发射的数据直到第二个Observable发射了数据。
+ SkipWhile - 丢弃Observables发射的数据直到条件不成立。
+ SkipUntil - 丢弃Observables发射的数据直到第二个Observable发射数据或者结束。
+ TakeWhile - 当条件不成立后丢弃Observables发射的数据。
+算数和聚合操作
+对整个Observable的数据项进行操作
+ Average - 计算Observable发射数据项的平均值并将此值发射。
+ Concat - 以不间隔2个或以上的Observable数据项的形式重新发射数据项，即拼接多个Observable的数据项。
+ Count - 计算Observable发射的数据项的总数目，并发射这个数目。
+ Max - 判断Observable的最大数据项并发射这个最大数。
+ Reduce - 使用一个函数处理Observable每个数据项，并弹出最后的值。
+ Sum - 计算Observable发射的数据项的和，并发射这个和。
+ 
+ 背压操作
+ Backpressure Operators - 解决观察者处理数据的速度慢于发射数据的速度。
+ 
+连接Observable操作
+具有更精确控制的订阅动态的专业Observable
+ Connect - 指示可连接Observable开始发射数据给它的订阅者。
+ Publish - 转化普通Observable到可连接Observable。
+ RefCount - 将可连接Observable变换为普通Observable。
+ Replay - 让所有观察者能看到相同的数据序列，即使订阅者是在Observable已经发射数据后才订阅。
+
+转变Observable操作
+ To - 将Observable转化为其它对象或数据结构。
+ 
+Observable操作决策树
+ 是一棵帮助你寻找响应式Observable操作的树
+ 我要创建一个新的Observable
+   ..它发射一个特定的数据项：Just
+     ..它在订阅时调用函数后返回：start
+	 ..它在订阅时调用Action,Callable，Runnable后返回：From
+	 ..经一段延迟：Timer
+   ..它从一个特定的 Array, Iterable中拿出数据，或类似的情况：From
+   ..通过在未来遍历：start
+   ..在未来获取序列：From
+   ..重复发射它的数据项：Repeat
+   ..以用户逻辑抓取数据：Create
+   ..
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
